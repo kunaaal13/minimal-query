@@ -1,19 +1,7 @@
-import { hashQueryKey } from './hash'
-import { QueryKey } from './types'
-
-type CacheEntry<T> = {
-  state: 'pending' | 'success' | 'error'
-  queryFn: () => Promise<T>
-}
-
 export class QueryCache {
-  private queryCache: Map<string, CacheEntry<any>>
+  private queries: Map<string, Query>
 
   constructor() {
-    this.queryCache = new Map<string, CacheEntry<any>>()
-  }
-
-  getQueryData<T>(queryKey: QueryKey) {
-    const cacheKey = hashQueryKey(queryKey)
+    this.queries = new Map()
   }
 }
