@@ -1,7 +1,11 @@
-export class QueryCache {
+import Query from './query'
+
+class QueryCache {
   private queries: Map<string, Query>
 
   constructor() {
-    this.queries = new Map()
+    this.queries = new Map<string, Query>()
   }
 }
+
+export default QueryCache

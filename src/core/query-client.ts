@@ -1,17 +1,11 @@
-import { DEFAULT_OPTIONS } from './constants'
-import { QueryCache } from './query-cache'
-import { DefaultOptions } from './types'
+import QueryCache from './query-cache'
 
-type QueryClientProps = {
-  defaultOptions?: Partial<DefaultOptions>
-}
-
-export class QueryClient {
+class QueryClient {
   private queryCache: QueryCache
-  private defaultOptions: DefaultOptions
 
-  constructor({ defaultOptions }: QueryClientProps) {
+  constructor() {
     this.queryCache = new QueryCache()
-    this.defaultOptions = { ...DEFAULT_OPTIONS, ...defaultOptions }
   }
 }
+
+export default QueryClient

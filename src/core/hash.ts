@@ -1,7 +1,46 @@
 import { QueryKey } from './types'
-import { isPlainObject } from '@tanstack/react-router'
 
-export function hashQueryKey(queryKey: QueryKey): string {
+// Copied from: https://github.com/jonschlinkert/is-plain-object
+export function isPlainObject(o: any): o is object {
+  if (!hasObjectPrototype(o)) {
+    return false
+  }
+
+  const ctor = o.constructor
+  if (ctor === undefined) {
+    return true
+  }
+
+  // If has modified prototype
+  const prot = ctor.prototype
+  if (!hasObjectPrototype(prot)) {
+    return false
+  }
+
+  // If constructor does not have an Object-specific method
+  if (!prot.hasOwnProperty('isPrototypeOf')) {
+    return false
+  }
+
+  // Handles Objects created by Object.create(<arbitrary prototype>)
+  if (Object.getPrototypeOf(o) !== Object.prototype) {
+    return false
+  }
+
+  // Most likely a plain Object
+  return true
+}
+
+function hasObjectPrototype(o: any): boolean {
+  return Object.prototype.toString.call(o) === '[object Object]'
+}
+
+/**
+ * Taken from: https://github.com/TanStack/query/blob/main/packages/query-core/src/utils.ts#L217
+ * Default query & mutation keys hash function.
+ * Hashes the value into a stable hash.
+ */
+export function hashKey(queryKey: QueryKey): string {
   return JSON.stringify(queryKey, (_, val) =>
     isPlainObject(val)
       ? Object.keys(val)
