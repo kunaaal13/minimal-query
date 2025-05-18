@@ -26,5 +26,6 @@ export type UseQueryResult<T = unknown, E = Error> = {
   isError: boolean
   isSuccess: boolean
   isStale: boolean
+  lastUpdatedAt: Date | undefined
   fetchStatus: FetchStatus
 }

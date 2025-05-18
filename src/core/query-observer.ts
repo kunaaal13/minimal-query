@@ -1,6 +1,6 @@
 import Query, { QueryConfig } from './query'
 import QueryClient from './query-client'
-import { QueryState } from './types'
+import { QueryState, UseQueryResult } from './types'
 
 class QueryObserver {
   private query: Query
@@ -44,8 +44,23 @@ class QueryObserver {
     return unsubscribe
   }
 
-  getResult<T = unknown, E = Error>(): QueryState<T, E> {
-    return this.query.state as QueryState<T, E>
+  getResult<T = unknown, E = Error>(): UseQueryResult<T, E> {
+    const queryState = this.query.state as QueryState<T, E>
+
+    return {
+      data: queryState.data,
+      error: queryState.error,
+      status: queryState.status,
+      fetchStatus: queryState.fetchStatus,
+      isLoading: queryState.status === 'pending',
+      isError: queryState.status === 'error',
+      isSuccess: queryState.status === 'success',
+      isStale: queryState.lastUpdatedAt
+        ? Date.now() - queryState.lastUpdatedAt.getTime() >
+          this.query.options.staleTime
+        : false,
+      lastUpdatedAt: queryState.lastUpdatedAt,
+    }
   }
 }
 
