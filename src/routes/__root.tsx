@@ -65,7 +65,7 @@ export const Route = createRootRoute({
 })
 
 function RootComponent() {
-  const [client] = React.useState(() => new QueryClient())
+  const [client] = React.useState(() => new QueryClient({}))
   return (
     <RootDocument>
       <QueryClientProvider client={client}>

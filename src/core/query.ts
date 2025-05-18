@@ -17,7 +17,7 @@ class Query<T = unknown, E = Error> {
   options: QueryOptions
   state: QueryState<T, E>
   private queryFn: () => Promise<T>
-  private activePromise: Promise<T> | undefined = undefined
+  private activePromise: Promise<T | undefined> | undefined = undefined
   private subscribers: Set<QueryObserver>
   private gcTimeout: NodeJS.Timeout | undefined
 
@@ -97,7 +97,7 @@ class Query<T = unknown, E = Error> {
       return this.activePromise
     }
 
-    const executeFetch = async (): Promise<T> => {
+    const executeFetch = async (): Promise<T | undefined> => {
       // 1. Update state to loading and fetching
       this.updateState((state) => ({
         ...state,
@@ -123,8 +123,6 @@ class Query<T = unknown, E = Error> {
           status: 'error',
           error: error as E,
         }))
-
-        throw error
       } finally {
         // 3. Update state to idle
         this.updateState((state) => ({

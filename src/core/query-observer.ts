@@ -7,7 +7,7 @@ class QueryObserver {
   notify: (() => void) | undefined
 
   constructor(queryClient: QueryClient, queryConfig: QueryConfig) {
-    const query = queryClient.getQuery(queryConfig.queryKey, queryConfig)
+    const query = queryClient.getQuery(queryConfig)
 
     this.query = query
     this.notify = undefined

@@ -12,11 +12,8 @@ class QueryClient {
     this.queryOptions = { ...DEFAULT_QUERY_OPTIONS, ...queryOptions }
   }
 
-  getQuery<T = unknown, E = Error>(
-    queryKey: QueryKey,
-    queryConfig: QueryConfig<T, E>
-  ) {
-    return this.queryCache.buildQuery(this, queryKey, queryConfig)
+  getQuery<T = unknown, E = Error>(queryConfig: QueryConfig<T, E>) {
+    return this.queryCache.buildQuery(this, queryConfig.queryKey, queryConfig)
   }
 
   // Remove a query from the cache
