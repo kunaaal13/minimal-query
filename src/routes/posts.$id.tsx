@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import useQuery from '~/query-hooks/use-query'
+import { sleep } from '~/utils/sleep'
 
 export const Route = createFileRoute('/posts/$id')({
   component: RouteComponent,
@@ -17,10 +18,11 @@ function RouteComponent() {
   const navigate = useNavigate()
 
   const query = useQuery({
-    queryFn: async () => {
+    queryFn: async (): Promise<Post> => {
       const res = await fetch(
         `https://jsonplaceholder.typicode.com/posts/${id}`
       )
+      await sleep(3000)
       return res.json()
     },
     queryKey: ['posts', id],
