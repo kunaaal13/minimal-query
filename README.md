@@ -1,4 +1,4 @@
-# Minimal React Query
+# Minimal Query
 
 A minimal, educational re-implementation of the core ideas behind [React Query](https://tanstack.com/query/latest) for learning and experimentation.  
 This project demonstrates the essential architecture and flow of a query caching and subscription system for React apps.
