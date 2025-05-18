@@ -1,5 +1,6 @@
 import { hashKey } from './hash'
 import Query, { QueryConfig } from './query'
+import QueryClient from './query-client'
 import { QueryKey } from './types'
 
 class QueryCache {
@@ -21,16 +22,18 @@ class QueryCache {
   }
 
   buildQuery<T = unknown, E = Error>(
+    client: QueryClient,
+    queryKey: QueryKey,
     queryConfig: QueryConfig<T, E>
   ): Query<T, E> {
     // Check if the query is already in the cache, if so, return it
-    const existingQuery = this.getQueryFromCache<T, E>(queryConfig.key)
+    const existingQuery = this.getQueryFromCache<T, E>(queryKey)
     if (existingQuery) {
       return existingQuery
     }
 
     // If not, create a new query and add it to the cache
-    const query = new Query<T, E>(queryConfig)
+    const query = new Query<T, E>(client, queryConfig)
     this.addQuery(query)
 
     return query
@@ -42,9 +45,10 @@ class QueryCache {
     }
   }
 
-  removeQuery(query: Query) {
-    if (this.queries.has(query.queryHash)) {
-      this.queries.delete(query.queryHash)
+  removeQuery(queryKey: QueryKey) {
+    const hashedKey = hashKey(queryKey)
+    if (this.queries.has(hashedKey)) {
+      this.queries.delete(hashedKey)
     }
   }
 }

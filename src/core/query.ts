@@ -1,34 +1,63 @@
+import { DEFAULT_QUERY_OPTIONS, DEFAULT_QUERY_STATE } from './constants'
 import { hashKey } from './hash'
+import QueryClient from './query-client'
+import QueryObserver from './query-observer'
 import { QueryKey, QueryOptions, QueryState } from './types'
 
 export type QueryConfig<T = unknown, E = Error> = {
-  key: QueryKey
-  options: QueryOptions
-  state: QueryState<T, E>
-  fetchFn: () => Promise<T>
+  queryKey: QueryKey
+  options?: Partial<QueryOptions>
+  queryFn: () => Promise<T>
 }
 
 class Query<T = unknown, E = Error> {
-  private key: QueryKey
+  private queryKey: QueryKey
+  private client: QueryClient
   queryHash: string
   private options: QueryOptions
-  private state: QueryState<T, E>
-  private fetchFn: () => Promise<T>
+  state: QueryState<T, E>
+  private queryFn: () => Promise<T>
   private activePromise: Promise<T> | undefined = undefined
-  private subscribers: Set<() => void> = new Set()
+  private subscribers: Set<QueryObserver>
 
-  constructor({ key, options, state, fetchFn }: QueryConfig<T, E>) {
-    this.key = key
-    this.queryHash = hashKey(key)
+  constructor(
+    client: QueryClient,
+    { queryKey, options, queryFn }: QueryConfig<T, E>
+  ) {
+    this.queryKey = queryKey
+    this.client = client
+    this.queryHash = hashKey(queryKey)
     this.options = options
-    this.state = state
-    this.fetchFn = fetchFn
+      ? { ...this.client.queryOptions, ...options }
+      : this.client.queryOptions
+    this.state = DEFAULT_QUERY_STATE as QueryState<T, E>
+    this.queryFn = queryFn
+    this.subscribers = new Set()
+  }
+
+  // Subscribe to the query
+  subscribe(observer: QueryObserver) {
+    this.subscribers.add(observer)
+
+    return () => this.unsubscribe(observer)
+  }
+
+  // Unsubscribe from the query
+  unsubscribe(observer: QueryObserver) {
+    this.subscribers.delete(observer)
+  }
+
+  // Notify all subscribers
+  notifySubscribers() {
+    this.subscribers.forEach((observer) => observer.notify?.())
   }
 
   // Update the state of the query - this is used to update the state of the query
   // updateFn is a function that takes the current state and returns the new state
+  // This function will notify all subscribers when the state is updated
   updateState(updateFn: (state: QueryState<T, E>) => QueryState<T, E>) {
     this.state = updateFn(this.state)
+    this.notifySubscribers()
   }
 
   // This is the main function that fetches the data from the API
@@ -49,7 +78,7 @@ class Query<T = unknown, E = Error> {
 
       // 2. Fetch data
       try {
-        const data = await this.fetchFn()
+        const data = await this.queryFn()
         this.updateState((state) => ({
           ...state,
           data,
