@@ -1,4 +1,4 @@
-import { DEFAULT_QUERY_OPTIONS, DEFAULT_QUERY_STATE } from './constants'
+import { DEFAULT_QUERY_STATE } from './constants'
 import { hashKey } from './hash'
 import QueryClient from './query-client'
 import QueryObserver from './query-observer'
@@ -14,30 +14,54 @@ class Query<T = unknown, E = Error> {
   private queryKey: QueryKey
   private client: QueryClient
   queryHash: string
-  private options: QueryOptions
+  options: QueryOptions
   state: QueryState<T, E>
   private queryFn: () => Promise<T>
   private activePromise: Promise<T> | undefined = undefined
   private subscribers: Set<QueryObserver>
+  private gcTimeout: NodeJS.Timeout | undefined
 
   constructor(
     client: QueryClient,
     { queryKey, options, queryFn }: QueryConfig<T, E>
   ) {
     this.queryKey = queryKey
+
     this.client = client
+
     this.queryHash = hashKey(queryKey)
+
     this.options = options
       ? { ...this.client.queryOptions, ...options }
       : this.client.queryOptions
+
     this.state = DEFAULT_QUERY_STATE as QueryState<T, E>
+
     this.queryFn = queryFn
     this.subscribers = new Set()
+  }
+
+  // Schedule a Garbage Collection
+  scheduleGarbageCollection() {
+    this.gcTimeout = setTimeout(() => {
+      this.client.removeQuery(this.queryKey)
+    }, this.options.gcTime)
+  }
+
+  // Clear the Garbage Collection timeout
+  clearGarbageCollection() {
+    if (this.gcTimeout) {
+      clearTimeout(this.gcTimeout)
+      this.gcTimeout = undefined
+    }
   }
 
   // Subscribe to the query
   subscribe(observer: QueryObserver) {
     this.subscribers.add(observer)
+
+    // Clear the Garbage Collection timeout when a subscriber is added
+    this.clearGarbageCollection()
 
     return () => this.unsubscribe(observer)
   }
@@ -45,6 +69,11 @@ class Query<T = unknown, E = Error> {
   // Unsubscribe from the query
   unsubscribe(observer: QueryObserver) {
     this.subscribers.delete(observer)
+
+    if (this.subscribers.size === 0) {
+      // Schedule a Garbage Collection when the last subscriber is removed
+      this.scheduleGarbageCollection()
+    }
   }
 
   // Notify all subscribers
@@ -83,6 +112,7 @@ class Query<T = unknown, E = Error> {
           ...state,
           data,
           status: 'success',
+          lastUpdatedAt: new Date(),
         }))
 
         return data
@@ -107,7 +137,9 @@ class Query<T = unknown, E = Error> {
       }
     }
 
-    return await executeFetch()
+    this.activePromise = executeFetch()
+
+    return this.activePromise
   }
 }
 

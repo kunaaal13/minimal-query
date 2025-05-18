@@ -7,9 +7,9 @@ class QueryClient {
   private queryCache: QueryCache
   queryOptions: QueryOptions
 
-  constructor() {
+  constructor(queryOptions: Partial<QueryOptions>) {
     this.queryCache = new QueryCache()
-    this.queryOptions = DEFAULT_QUERY_OPTIONS
+    this.queryOptions = { ...DEFAULT_QUERY_OPTIONS, ...queryOptions }
   }
 
   getQuery<T = unknown, E = Error>(
@@ -17,6 +17,11 @@ class QueryClient {
     queryConfig: QueryConfig<T, E>
   ) {
     return this.queryCache.buildQuery(this, queryKey, queryConfig)
+  }
+
+  // Remove a query from the cache
+  removeQuery(queryKey: QueryKey) {
+    this.queryCache.removeQuery(queryKey)
   }
 }
 

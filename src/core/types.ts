@@ -15,4 +15,16 @@ export type QueryState<T = unknown, E = Error> = {
   error: E | undefined
   status: QueryStatus
   fetchStatus: FetchStatus
+  lastUpdatedAt: Date | undefined
+}
+
+export type UseQueryResult<T = unknown, E = Error> = {
+  data: T | undefined
+  error: E | undefined
+  status: QueryStatus
+  isLoading: boolean
+  isError: boolean
+  isSuccess: boolean
+  isStale: boolean
+  fetchStatus: FetchStatus
 }

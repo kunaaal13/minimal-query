@@ -1,40 +1,23 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import useQuery from '~/query-hooks/use-query'
-import { sleep } from '~/utils/sleep'
+import usePosts from '~/usePosts'
 
 export const Route = createFileRoute('/')({
   component: Home,
 })
 
-const key = ['Posts']
-
-type Post = {
-  id: number
-  title: string
-  body: string
-  userId: number
-}
-
 function Home() {
   const navigate = useNavigate()
 
-  const query = useQuery({
-    queryFn: async (): Promise<Post[]> => {
-      const res = await fetch('https://jsonplaceholder.typicode.com/posts')
-      await sleep(3000)
-      return res.json()
-    },
-    queryKey: key,
-  })
+  const postsQuery = usePosts()
 
   return (
     <div className='p-2'>
       <h3>Welcome Home!!!</h3>
 
-      {query.status === 'pending' && <div>Loading...</div>}
-      {query.status === 'success' && (
+      {postsQuery.status === 'pending' && <div>Loading...</div>}
+      {postsQuery.status === 'success' && (
         <div className='w-full grid grid-cols-3 gap-2'>
-          {query.data?.map((post) => (
+          {postsQuery.data?.map((post) => (
             <div
               key={post.id}
               className='p-2 border rounded-md bg-gray-100 flex flex-col gap-2'

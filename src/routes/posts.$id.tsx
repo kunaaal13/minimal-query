@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import useQuery from '~/query-hooks/use-query'
+import usePosts from '~/usePosts'
 import { sleep } from '~/utils/sleep'
 
 export const Route = createFileRoute('/posts/$id')({
@@ -16,6 +17,8 @@ type Post = {
 function RouteComponent() {
   const { id } = Route.useParams()
   const navigate = useNavigate()
+
+  const postsQuery = usePosts()
 
   const query = useQuery({
     queryFn: async (): Promise<Post> => {

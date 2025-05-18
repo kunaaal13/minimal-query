@@ -13,6 +13,22 @@ class QueryObserver {
     this.notify = undefined
   }
 
+  fetch() {
+    // If the query is not enabled, return
+    if (!this.query.options.enabled) {
+      return
+    }
+
+    // If the query is stale, fetch the data
+    const lastUpdatedAt = this.query.state.lastUpdatedAt
+    if (
+      !lastUpdatedAt ||
+      Date.now() - lastUpdatedAt.getTime() > this.query.options.staleTime
+    ) {
+      this.query.fetch()
+    }
+  }
+
   subscribe(callback: () => void) {
     // Set the notify function to the callback -> This is the render function that will be called when the query changes
     this.notify = callback
@@ -22,7 +38,7 @@ class QueryObserver {
     const unsubscribe = this.query.subscribe(this)
 
     // Fetch the data from the query
-    this.query.fetch()
+    this.fetch()
 
     // Return the unsubscribe function -> This is the function that will be called when the observer is unsubscribed
     return unsubscribe
